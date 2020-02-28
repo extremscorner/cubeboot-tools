@@ -6,6 +6,7 @@
  *
  * Copyright (C) 2005-2006 The GameCube Linux Team
  * Copyright (C) 2005,2006 Albert Herranz
+ * Copyright (C) 2020 Extrems
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,6 +16,7 @@
  */
 
 #include <stddef.h>
+#include <string.h>
 
 #include "../include/system.h"
 
@@ -155,6 +157,9 @@ static struct bootloader_control bl_control = { .size = ~0 };
 static unsigned char di_buffer[DI_SECTOR_SIZE] __attribute__ ((aligned(32))) =
 	"www.gc-linux.org";
 
+static void patch_ipl(void);
+static void skip_ipl_animation(void);
+
 /*
  * This is our particular "main".
  * It _must_ be the first function in this file.
@@ -166,6 +171,8 @@ void al_start(void **enter, void **load, void **exit)
 	*enter = al_enter;
 	*load = al_load;
 	*exit = al_exit;
+
+	patch_ipl();
 }
 
 
@@ -290,34 +297,6 @@ static void al_enter(void (*report) (char *text, ...))
 }
 
 /*
- *
- */
-static void patch_ipl(void)
-{
-	#define IPL_ADDRESS1 0x81300eb8
-	#define IPL_ADDRESS2 0x81300d58
-	#define IPL_INSTRUCTION 0x40820010
-
-	/* make some jumps really jump... */
-
-	unsigned long *address;
-
-	address = (unsigned long *)IPL_ADDRESS1;
-	if (*address == IPL_INSTRUCTION) {
-		*address = IPL_INSTRUCTION | 0x02000000;
-		flush_dcache_range(address, address+1);
-		invalidate_icache_range(address, address+1);
-	}
-
-	address = (unsigned long *)IPL_ADDRESS2;
-	if (*address == IPL_INSTRUCTION) {
-		*address = IPL_INSTRUCTION | 0x02000000;
-		flush_dcache_range(address, address+1);
-		invalidate_icache_range(address, address+1);
-	}
-}
-
-/*
  * This is the apploader main processing function.
  * Called by the IPL.
  */
@@ -344,8 +323,6 @@ static int al_load(void **address, uint32_t *length, uint32_t *offset)
 		/* should not get here if al_enter was called */
 	case 1:
 		al_control.step = 1; /* fix it to a known value */
-
-		patch_ipl();
 
 		/* read sector 17, containing Boot Record Volume */
 		*address = di_buffer;
@@ -520,6 +497,8 @@ static int al_load(void **address, uint32_t *length, uint32_t *offset)
 		lowmem->a_bi2 = (void *)al_control.bi2_address;
 		flush_dcache_range(lowmem, lowmem+1);
 
+		skip_ipl_animation();
+
 		*length = 0;
 		need_more = 0;
 		al_control.step++;
@@ -538,5 +517,158 @@ static int al_load(void **address, uint32_t *length, uint32_t *offset)
 static void *al_exit(void)
 {
 	return bl_control.entry_point;
+}
+
+/*
+ *
+ */
+enum ipl_revision {
+	IPL_UNKNOWN,
+	IPL_NTSC_10,
+	IPL_NTSC_11,
+	IPL_PAL_10,
+	IPL_MPAL_11,
+	IPL_NTSC_12,
+	IPL_PAL_12
+};
+
+static enum ipl_revision get_ipl_revision(void)
+{
+	register uint32_t sdata2 asm ("r2");
+	register uint32_t sdata asm ("r13");
+
+	if (sdata2 == 0x81465cc0 && sdata == 0x81465320)
+		return IPL_NTSC_10;
+	if (sdata2 == 0x81489c80 && sdata == 0x81489120)
+		return IPL_NTSC_11;
+	if (sdata2 == 0x814b5b20 && sdata == 0x814b4fc0)
+		return IPL_PAL_10;
+	if (sdata2 == 0x81484940 && sdata == 0x81483de0)
+		return IPL_MPAL_11;
+	if (sdata2 == 0x8148aae0 && sdata == 0x8148b640)
+		return IPL_NTSC_12;
+	if (sdata2 == 0x814b66e0 && sdata == 0x814b7280)
+		return IPL_PAL_12;
+
+	return IPL_UNKNOWN;
+}
+
+/*
+ *
+ */
+static void patch_ipl(void)
+{
+	uint32_t *start, *end;
+	uint32_t *address;
+
+	switch (get_ipl_revision()) {
+	case IPL_NTSC_10:
+		start = (uint32_t *)0x81300a70;
+		end = (uint32_t *)0x813010b0;
+		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
+			address = (uint32_t *)0x81300e88;
+			if (*address == 0x38000000)
+				*address |= 1;
+
+			address = (uint32_t *)0x81300ea0;
+			if (*address == 0x38000000)
+				*address |= 1;
+
+			address = (uint32_t *)0x81300ea8;
+			if (*address == 0x38000000)
+				*address |= 1;
+
+			flush_dcache_range(start, end);
+			invalidate_icache_range(start, end);
+		}
+		break;
+	case IPL_NTSC_11:
+	case IPL_PAL_10:
+	case IPL_MPAL_11:
+		start = (uint32_t *)0x813006e8;
+		end = (uint32_t *)0x813007b8;
+		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
+			address = (uint32_t *)0x8130077c;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			address = (uint32_t *)0x813007a0;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			flush_dcache_range(start, end);
+			invalidate_icache_range(start, end);
+		}
+		break;
+	case IPL_NTSC_12:
+		start = (uint32_t *)0x81300a24;
+		end = (uint32_t *)0x81300b08;
+		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
+			address = (uint32_t *)0x81300acc;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			address = (uint32_t *)0x81300af0;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			flush_dcache_range(start, end);
+			invalidate_icache_range(start, end);
+		}
+		break;
+	case IPL_PAL_12:
+		start = (uint32_t *)0x813007d8;
+		end = (uint32_t *)0x813008bc;
+		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
+			address = (uint32_t *)0x81300880;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			address = (uint32_t *)0x813008a4;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			flush_dcache_range(start, end);
+			invalidate_icache_range(start, end);
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+/*
+ *
+ */
+static void skip_ipl_animation(void)
+{
+	switch (get_ipl_revision()) {
+	case IPL_NTSC_10:
+		if (*(uint32_t *)0x8145d6f0 == 0x81465728)
+			*(uint8_t *)0x81465747 = 1;
+		break;
+	case IPL_NTSC_11:
+		if (*(uint32_t *)0x81481538 == 0x81489e58)
+			*(uint8_t *)0x81489e77 = 1;
+		break;
+	case IPL_PAL_10:
+		if (*(uint32_t *)0x814ad3d8 == 0x814b5d58)
+			*(uint8_t *)0x814b5d77 = 1;
+		break;
+	case IPL_MPAL_11:
+		if (*(uint32_t *)0x8147c1f8 == 0x81484b18)
+			*(uint8_t *)0x81484b37 = 1;
+		break;
+	case IPL_NTSC_12:
+		if (*(uint32_t *)0x81483a90 == 0x8148b8d8)
+			*(uint8_t *)0x8148b8f7 = 1;
+		break;
+	case IPL_PAL_12:
+		if (*(uint32_t *)0x814af6d0 == 0x814b7518)
+			*(uint8_t *)0x814b7537 = 1;
+		break;
+	default:
+		break;
+	}
 }
 

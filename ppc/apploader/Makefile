@@ -1,5 +1,5 @@
 
-CROSS=powerpc-linux-
+CROSS=$(DEVKITPPC)/bin/powerpc-eabi-
 CC=$(CROSS)gcc
 OBJDUMP=$(CROSS)objdump
 OBJCOPY=$(CROSS)objcopy
@@ -8,7 +8,7 @@ HOSTCC = gcc
 
 DOLTOOL = doltool
 
-CFLAGS :=
+CFLAGS := -O2
 
 
 apploader_entry_point = 81200000
@@ -36,7 +36,7 @@ apploader.elf: $(apploader_OBJS)
 	$(CC) -nostartfiles -nodefaultlibs -Wl,-Ttext=$(apploader_entry_point) -Wl,-e,al_start -Wl,-T,apploader_ldscript.txt $(apploader_OBJS) -o $@
 
 $(apploader_C_OBJS): %.o: %.c
-	$(CC) $(CFLAGS) -fno-builtin -c $< -o $@
+	$(CC) $(CFLAGS) -fno-builtin -fno-toplevel-reorder -c $< -o $@
 
 $(apploader_S_OBJS): %.o: %.S
 	$(CC) -c $< -o $@

@@ -1,5 +1,5 @@
 
-CROSS=powerpc-linux-
+CROSS=$(DEVKITPPC)/bin/powerpc-eabi-
 CC=$(CROSS)gcc
 OBJDUMP=$(CROSS)objdump
 OBJCOPY=$(CROSS)objcopy
@@ -25,7 +25,7 @@ misc_OBJS = $(misc_S_OBJS)
 all: $(lib_OBJS) $(misc_OBJS)
 
 $(lib_C_OBJS): %.o: %.c
-	$(CC) $(CFLAGS) -fno-builtin -c $< -o $@
+	$(CC) $(CFLAGS) -fno-builtin -fno-toplevel-reorder -c $< -o $@
 
 $(misc_S_OBJS): %.o: %.S
 	$(CC) -c $< -o $@
