@@ -528,7 +528,8 @@ enum ipl_revision {
 	IPL_NTSC_11,
 	IPL_PAL_10,
 	IPL_MPAL_11,
-	IPL_NTSC_12,
+	IPL_NTSC_12a,
+	IPL_NTSC_12b,
 	IPL_PAL_12
 };
 
@@ -545,8 +546,10 @@ static enum ipl_revision get_ipl_revision(void)
 		return IPL_PAL_10;
 	if (sdata2 == 0x81484940 && sdata == 0x81483de0)
 		return IPL_MPAL_11;
+	if (sdata2 == 0x8148a660 && sdata == 0x8148b1c0)
+		return IPL_NTSC_12a;
 	if (sdata2 == 0x8148aae0 && sdata == 0x8148b640)
-		return IPL_NTSC_12;
+		return IPL_NTSC_12b;
 	if (sdata2 == 0x814b66e0 && sdata == 0x814b7280)
 		return IPL_PAL_12;
 
@@ -600,7 +603,8 @@ static void patch_ipl(void)
 			invalidate_icache_range(start, end);
 		}
 		break;
-	case IPL_NTSC_12:
+	case IPL_NTSC_12a:
+	case IPL_NTSC_12b:
 		start = (uint32_t *)0x81300a24;
 		end = (uint32_t *)0x81300b08;
 		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
@@ -659,7 +663,11 @@ static void skip_ipl_animation(void)
 		if (*(uint32_t *)0x8147c1f8 == 0x81484b18)
 			*(uint8_t *)0x81484b37 = 1;
 		break;
-	case IPL_NTSC_12:
+	case IPL_NTSC_12a:
+		if (*(uint32_t *)0x81483610 == 0x8148b438)
+			*(uint8_t *)0x8148b457 = 1;
+		break;
+	case IPL_NTSC_12b:
 		if (*(uint32_t *)0x81483a90 == 0x8148b8d8)
 			*(uint8_t *)0x8148b8f7 = 1;
 		break;
