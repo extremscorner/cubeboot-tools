@@ -648,31 +648,45 @@ static void skip_ipl_animation(void)
 {
 	switch (get_ipl_revision()) {
 	case IPL_NTSC_10:
-		if (*(uint32_t *)0x8145d6f0 == 0x81465728)
+		if (*(uint32_t *)0x8145d6d0 == 1
+			&& !(*(uint16_t *)0x8145f14c & 0x0100)
+			&& *(uint32_t *)0x8145d6f0 == 0x81465728)
 			*(uint8_t *)0x81465747 = 1;
 		break;
 	case IPL_NTSC_11:
-		if (*(uint32_t *)0x81481538 == 0x81489e58)
+		if (*(uint32_t *)0x81481518 == 1
+			&& !(*(uint16_t *)0x8148370c & 0x0100)
+			&& *(uint32_t *)0x81481538 == 0x81489e58)
 			*(uint8_t *)0x81489e77 = 1;
 		break;
 	case IPL_PAL_10:
-		if (*(uint32_t *)0x814ad3d8 == 0x814b5d58)
+		if (*(uint32_t *)0x814ad3b8 == 1
+			&& !(*(uint16_t *)0x814af60c & 0x0100)
+			&& *(uint32_t *)0x814ad3d8 == 0x814b5d58)
 			*(uint8_t *)0x814b5d77 = 1;
 		break;
 	case IPL_MPAL_11:
-		if (*(uint32_t *)0x8147c1f8 == 0x81484b18)
+		if (*(uint32_t *)0x8147c1d8 == 1
+			&& !(*(uint16_t *)0x8147e3cc & 0x0100)
+			&& *(uint32_t *)0x8147c1f8 == 0x81484b18)
 			*(uint8_t *)0x81484b37 = 1;
 		break;
 	case IPL_NTSC_12a:
-		if (*(uint32_t *)0x81483610 == 0x8148b438)
+		if (*(uint32_t *)0x814835f0 == 1
+			&& !(*(uint16_t *)0x81484cec & 0x0100)
+			&& *(uint32_t *)0x81483610 == 0x8148b438)
 			*(uint8_t *)0x8148b457 = 1;
 		break;
 	case IPL_NTSC_12b:
-		if (*(uint32_t *)0x81483a90 == 0x8148b8d8)
+		if (*(uint32_t *)0x81483a70 == 1
+			&& !(*(uint16_t *)0x8148518c & 0x0100)
+			&& *(uint32_t *)0x81483a90 == 0x8148b8d8)
 			*(uint8_t *)0x8148b8f7 = 1;
 		break;
 	case IPL_PAL_12:
-		if (*(uint32_t *)0x814af6d0 == 0x814b7518)
+		if (*(uint32_t *)0x814af6b0 == 1
+			&& !(*(uint16_t *)0x814b0dcc & 0x0100)
+			&& *(uint32_t *)0x814af6d0 == 0x814b7518)
 			*(uint8_t *)0x814b7537 = 1;
 		break;
 	default:

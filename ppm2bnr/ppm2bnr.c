@@ -16,7 +16,7 @@
 
 #include <stdio.h>
 
-#include <pam.h> /* netpbm */
+#include <netpbm/pam.h>
 
 #include "../include/lib.h"
 #include "../include/bnr.h"

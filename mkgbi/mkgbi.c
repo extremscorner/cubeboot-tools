@@ -77,9 +77,8 @@ static void default_apploader_header(struct gcm_apploader_header *ah)
 {
 	memset(ah, 0, sizeof(*ah));
 
-	memcpy(ah->date, "2006/01/06", 10);
+	memcpy(ah->date, "2020/11/29", 10);
 	ah->entry_point = 0x81200000;	/* gets proper endianness later */
-	ah->trailer_size = cpu_to_be32(0x20000);	/* bogus */
 }
 
 /*

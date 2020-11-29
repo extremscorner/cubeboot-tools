@@ -48,7 +48,7 @@ struct gcm_disk_header {
 	struct gcm_disk_info info;
 	char game_name[992];
 	uint32_t debug_monitor_offset;
-	unsigned long debug_monitor_address;
+	uint32_t debug_monitor_address;
 	char unused_2[24];
 	struct gcm_disk_layout layout;
 } __attribute__ ((__packed__));
@@ -69,7 +69,7 @@ struct gcm_disk_header_info {
 struct gcm_apploader_header {
 	char date[10];
 	char padding_1[6];
-	unsigned long entry_point;
+	uint32_t entry_point;
 	uint32_t size;
 	uint32_t trailer_size;
 	uint32_t unknown_1;
