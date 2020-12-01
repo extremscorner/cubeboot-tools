@@ -15,6 +15,8 @@
  *
  */
 
+#define PATCH_IPL 1
+
 #include <stddef.h>
 #include <string.h>
 
@@ -157,8 +159,10 @@ static struct bootloader_control bl_control = { .size = ~0 };
 static unsigned char di_buffer[DI_SECTOR_SIZE] __attribute__ ((aligned(32))) =
 	"www.gc-linux.org";
 
+#if PATCH_IPL
 static void patch_ipl(void);
 static void skip_ipl_animation(void);
+#endif
 
 /*
  * This is our particular "main".
@@ -172,7 +176,9 @@ void al_start(void **enter, void **load, void **exit)
 	*load = al_load;
 	*exit = al_exit;
 
+#if PATCH_IPL
 	patch_ipl();
+#endif
 }
 
 
@@ -497,8 +503,9 @@ static int al_load(void **address, uint32_t *length, uint32_t *offset)
 		lowmem->a_bi2 = (void *)al_control.bi2_address;
 		flush_dcache_range(lowmem, lowmem+1);
 
+#if PATCH_IPL
 		skip_ipl_animation();
-
+#endif
 		*length = 0;
 		need_more = 0;
 		al_control.step++;
@@ -518,6 +525,8 @@ static void *al_exit(void)
 {
 	return bl_control.entry_point;
 }
+
+#if PATCH_IPL
 
 /*
  *
@@ -693,4 +702,6 @@ static void skip_ipl_animation(void)
 		break;
 	}
 }
+
+#endif
 
