@@ -6,7 +6,7 @@
  *
  * Copyright (C) 2005-2006 The GameCube Linux Team
  * Copyright (C) 2005,2006 Albert Herranz
- * Copyright (C) 2020 Extrems
+ * Copyright (C) 2020-2021 Extrems
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -533,13 +533,15 @@ static void *al_exit(void)
  */
 enum ipl_revision {
 	IPL_UNKNOWN,
-	IPL_NTSC_10,
-	IPL_NTSC_11,
-	IPL_PAL_10,
-	IPL_MPAL_11,
-	IPL_NTSC_12a,
-	IPL_NTSC_12b,
-	IPL_PAL_12
+	IPL_NTSC_10_001,
+	IPL_NTSC_10_002,
+	IPL_NTSC_11_001,
+	IPL_PAL_10_001,
+	IPL_PAL_10_002,
+	IPL_MPAL_11_002,
+	IPL_NTSC_12_001,
+	IPL_NTSC_12_101,
+	IPL_PAL_12_101
 };
 
 static enum ipl_revision get_ipl_revision(void)
@@ -548,19 +550,23 @@ static enum ipl_revision get_ipl_revision(void)
 	register uint32_t sdata asm ("r13");
 
 	if (sdata2 == 0x81465cc0 && sdata == 0x81465320)
-		return IPL_NTSC_10;
+		return IPL_NTSC_10_001;
+	if (sdata2 == 0x81468fc0 && sdata == 0x814685c0)
+		return IPL_NTSC_10_002;
 	if (sdata2 == 0x81489c80 && sdata == 0x81489120)
-		return IPL_NTSC_11;
+		return IPL_NTSC_11_001;
 	if (sdata2 == 0x814b5b20 && sdata == 0x814b4fc0)
-		return IPL_PAL_10;
+		return IPL_PAL_10_001;
+	if (sdata2 == 0x814b4fc0 && sdata == 0x814b4400)
+		return IPL_PAL_10_002;
 	if (sdata2 == 0x81484940 && sdata == 0x81483de0)
-		return IPL_MPAL_11;
+		return IPL_MPAL_11_002;
 	if (sdata2 == 0x8148a660 && sdata == 0x8148b1c0)
-		return IPL_NTSC_12a;
+		return IPL_NTSC_12_001;
 	if (sdata2 == 0x8148aae0 && sdata == 0x8148b640)
-		return IPL_NTSC_12b;
+		return IPL_NTSC_12_101;
 	if (sdata2 == 0x814b66e0 && sdata == 0x814b7280)
-		return IPL_PAL_12;
+		return IPL_PAL_12_101;
 
 	return IPL_UNKNOWN;
 }
@@ -574,7 +580,7 @@ static void patch_ipl(void)
 	uint32_t *address;
 
 	switch (get_ipl_revision()) {
-	case IPL_NTSC_10:
+	case IPL_NTSC_10_001:
 		start = (uint32_t *)0x81300a70;
 		end = (uint32_t *)0x813010b0;
 		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
@@ -594,9 +600,29 @@ static void patch_ipl(void)
 			invalidate_icache_range(start, end);
 		}
 		break;
-	case IPL_NTSC_11:
-	case IPL_PAL_10:
-	case IPL_MPAL_11:
+	case IPL_NTSC_10_002:
+		start = (uint32_t *)0x813008d8;
+		end = (uint32_t *)0x8130096c;
+		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
+			address = (uint32_t *)0x8130092c;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			address = (uint32_t *)0x81300944;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			address = (uint32_t *)0x8130094c;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			flush_dcache_range(start, end);
+			invalidate_icache_range(start, end);
+		}
+		break;
+	case IPL_NTSC_11_001:
+	case IPL_PAL_10_001:
+	case IPL_MPAL_11_002:
 		start = (uint32_t *)0x813006e8;
 		end = (uint32_t *)0x813007b8;
 		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
@@ -612,8 +638,24 @@ static void patch_ipl(void)
 			invalidate_icache_range(start, end);
 		}
 		break;
-	case IPL_NTSC_12a:
-	case IPL_NTSC_12b:
+	case IPL_PAL_10_002:
+		start = (uint32_t *)0x8130092c;
+		end = (uint32_t *)0x81300a10;
+		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
+			address = (uint32_t *)0x813009d4;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			address = (uint32_t *)0x813009f8;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			flush_dcache_range(start, end);
+			invalidate_icache_range(start, end);
+		}
+		break;
+	case IPL_NTSC_12_001:
+	case IPL_NTSC_12_101:
 		start = (uint32_t *)0x81300a24;
 		end = (uint32_t *)0x81300b08;
 		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
@@ -629,7 +671,7 @@ static void patch_ipl(void)
 			invalidate_icache_range(start, end);
 		}
 		break;
-	case IPL_PAL_12:
+	case IPL_PAL_12_101:
 		start = (uint32_t *)0x813007d8;
 		end = (uint32_t *)0x813008bc;
 		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
@@ -656,43 +698,55 @@ static void patch_ipl(void)
 static void skip_ipl_animation(void)
 {
 	switch (get_ipl_revision()) {
-	case IPL_NTSC_10:
+	case IPL_NTSC_10_001:
 		if (*(uint32_t *)0x8145d6d0 == 1
 			&& !(*(uint16_t *)0x8145f14c & 0x0100)
 			&& *(uint32_t *)0x8145d6f0 == 0x81465728)
 			*(uint8_t *)0x81465747 = 1;
 		break;
-	case IPL_NTSC_11:
+	case IPL_NTSC_10_002:
+		if (*(uint32_t *)0x814609c0 == 1
+			&& !(*(uint16_t *)0x814624ec & 0x0100)
+			&& *(uint32_t *)0x814609e0 == 0x81468ac8)
+			*(uint8_t *)0x81468ae7 = 1;
+		break;
+	case IPL_NTSC_11_001:
 		if (*(uint32_t *)0x81481518 == 1
 			&& !(*(uint16_t *)0x8148370c & 0x0100)
 			&& *(uint32_t *)0x81481538 == 0x81489e58)
 			*(uint8_t *)0x81489e77 = 1;
 		break;
-	case IPL_PAL_10:
+	case IPL_PAL_10_001:
 		if (*(uint32_t *)0x814ad3b8 == 1
 			&& !(*(uint16_t *)0x814af60c & 0x0100)
 			&& *(uint32_t *)0x814ad3d8 == 0x814b5d58)
 			*(uint8_t *)0x814b5d77 = 1;
 		break;
-	case IPL_MPAL_11:
+	case IPL_PAL_10_002:
+		if (*(uint32_t *)0x814ac828 == 1
+			&& !(*(uint16_t *)0x814aeb2c & 0x0100)
+			&& *(uint32_t *)0x814ac848 == 0x814b5278)
+			*(uint8_t *)0x814b5297 = 1;
+		break;
+	case IPL_MPAL_11_002:
 		if (*(uint32_t *)0x8147c1d8 == 1
 			&& !(*(uint16_t *)0x8147e3cc & 0x0100)
 			&& *(uint32_t *)0x8147c1f8 == 0x81484b18)
 			*(uint8_t *)0x81484b37 = 1;
 		break;
-	case IPL_NTSC_12a:
+	case IPL_NTSC_12_001:
 		if (*(uint32_t *)0x814835f0 == 1
 			&& !(*(uint16_t *)0x81484cec & 0x0100)
 			&& *(uint32_t *)0x81483610 == 0x8148b438)
 			*(uint8_t *)0x8148b457 = 1;
 		break;
-	case IPL_NTSC_12b:
+	case IPL_NTSC_12_101:
 		if (*(uint32_t *)0x81483a70 == 1
 			&& !(*(uint16_t *)0x8148518c & 0x0100)
 			&& *(uint32_t *)0x81483a90 == 0x8148b8d8)
 			*(uint8_t *)0x8148b8f7 = 1;
 		break;
-	case IPL_PAL_12:
+	case IPL_PAL_12_101:
 		if (*(uint32_t *)0x814af6b0 == 1
 			&& !(*(uint16_t *)0x814b0dcc & 0x0100)
 			&& *(uint32_t *)0x814af6d0 == 0x814b7518)
