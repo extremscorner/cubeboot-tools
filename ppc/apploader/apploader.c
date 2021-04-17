@@ -538,7 +538,8 @@ enum ipl_revision {
 	IPL_NTSC_11_001,
 	IPL_PAL_10_001,
 	IPL_PAL_10_002,
-	IPL_MPAL_11_002,
+	IPL_MPAL_11,
+	IPL_TDEV_11,
 	IPL_NTSC_12_001,
 	IPL_NTSC_12_101,
 	IPL_PAL_12_101
@@ -560,7 +561,9 @@ static enum ipl_revision get_ipl_revision(void)
 	if (sdata2 == 0x814b4fc0 && sdata == 0x814b4400)
 		return IPL_PAL_10_002;
 	if (sdata2 == 0x81484940 && sdata == 0x81483de0)
-		return IPL_MPAL_11_002;
+		return IPL_MPAL_11;
+	if (sdata2 == 0x8148fbe0 && sdata == 0x8148ef80)
+		return IPL_TDEV_11;
 	if (sdata2 == 0x8148a660 && sdata == 0x8148b1c0)
 		return IPL_NTSC_12_001;
 	if (sdata2 == 0x8148aae0 && sdata == 0x8148b640)
@@ -622,7 +625,7 @@ static void patch_ipl(void)
 		break;
 	case IPL_NTSC_11_001:
 	case IPL_PAL_10_001:
-	case IPL_MPAL_11_002:
+	case IPL_MPAL_11:
 		start = (uint32_t *)0x813006e8;
 		end = (uint32_t *)0x813007b8;
 		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
@@ -647,6 +650,22 @@ static void patch_ipl(void)
 				*address |= 1;
 
 			address = (uint32_t *)0x813009f8;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			flush_dcache_range(start, end);
+			invalidate_icache_range(start, end);
+		}
+		break;
+	case IPL_TDEV_11:
+		start = (uint32_t *)0x81300b58;
+		end = (uint32_t *)0x81300c3c;
+		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
+			address = (uint32_t *)0x81300c00;
+			if (*address == 0x38600000)
+				*address |= 1;
+
+			address = (uint32_t *)0x81300c24;
 			if (*address == 0x38600000)
 				*address |= 1;
 
@@ -728,11 +747,17 @@ static void skip_ipl_animation(void)
 			&& *(uint32_t *)0x814ac848 == 0x814b5278)
 			*(uint8_t *)0x814b5297 = 1;
 		break;
-	case IPL_MPAL_11_002:
+	case IPL_MPAL_11:
 		if (*(uint32_t *)0x8147c1d8 == 1
 			&& !(*(uint16_t *)0x8147e3cc & 0x0100)
 			&& *(uint32_t *)0x8147c1f8 == 0x81484b18)
 			*(uint8_t *)0x81484b37 = 1;
+		break;
+	case IPL_TDEV_11:
+		if (*(uint32_t *)0x81487438 == 1
+			&& !(*(uint16_t *)0x8148972c & 0x0100)
+			&& *(uint32_t *)0x81487458 == 0x8148fe78)
+			*(uint8_t *)0x8148fe97 = 1;
 		break;
 	case IPL_NTSC_12_001:
 		if (*(uint32_t *)0x814835f0 == 1
