@@ -535,6 +535,7 @@ enum ipl_revision {
 	IPL_UNKNOWN,
 	IPL_NTSC_10_001,
 	IPL_NTSC_10_002,
+	IPL_DEV_10,
 	IPL_NTSC_11_001,
 	IPL_PAL_10_001,
 	IPL_PAL_10_002,
@@ -554,6 +555,8 @@ static enum ipl_revision get_ipl_revision(void)
 		return IPL_NTSC_10_001;
 	if (sdata2 == 0x81468fc0 && sdata == 0x814685c0)
 		return IPL_NTSC_10_002;
+	if (sdata2 == 0x814695e0 && sdata == 0x81468bc0)
+		return IPL_DEV_10;
 	if (sdata2 == 0x81489c80 && sdata == 0x81489120)
 		return IPL_NTSC_11_001;
 	if (sdata2 == 0x814b5b20 && sdata == 0x814b4fc0)
@@ -617,6 +620,18 @@ static void patch_ipl(void)
 
 			address = (uint32_t *)0x8130094c;
 			if (*address == 0x38600000)
+				*address |= 1;
+
+			flush_dcache_range(start, end);
+			invalidate_icache_range(start, end);
+		}
+		break;
+	case IPL_DEV_10:
+		start = (uint32_t *)0x81300dfc;
+		end = (uint32_t *)0x81301424;
+		if (start[0] == 0x7c0802a6 && end[-1] == 0x4e800020) {
+			address = (uint32_t *)0x8130121c;
+			if (*address == 0x38000000)
 				*address |= 1;
 
 			flush_dcache_range(start, end);
@@ -728,6 +743,12 @@ static void skip_ipl_animation(void)
 			&& !(*(uint16_t *)0x814624ec & 0x0100)
 			&& *(uint32_t *)0x814609e0 == 0x81468ac8)
 			*(uint8_t *)0x81468ae7 = 1;
+		break;
+	case IPL_DEV_10:
+		if (*(uint32_t *)0x81460fe0 == 1
+			&& !(*(uint16_t *)0x81462b0c & 0x0100)
+			&& *(uint32_t *)0x81461000 == 0x814690e8)
+			*(uint8_t *)0x81469107 = 1;
 		break;
 	case IPL_NTSC_11_001:
 		if (*(uint32_t *)0x81481518 == 1
