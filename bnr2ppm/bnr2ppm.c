@@ -19,6 +19,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #include "../include/lib.h"
