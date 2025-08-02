@@ -66,7 +66,7 @@ static void default_disk_header_info(struct gcm_disk_header_info *dhi)
 	memset(dhi, 0, sizeof(*dhi));
 
 	dhi->simulated_memory_size = cpu_to_be32(0x01800000);
-	dhi->country_code = cpu_to_be32(1); /* 1=ntsc, 2=pal */
+	dhi->country_code = cpu_to_be32(3); /* 1=ntsc, 2=pal, 3=all */
 	dhi->unknown_1 = cpu_to_be32(1);
 }
 
@@ -77,7 +77,7 @@ static void default_apploader_header(struct gcm_apploader_header *ah)
 {
 	memset(ah, 0, sizeof(*ah));
 
-	memcpy(ah->date, "2021/10/06", 10);
+	memcpy(ah->date, "2025/08/02", 10);
 	ah->entry_point = 0x81200000;	/* gets proper endianness later */
 }
 

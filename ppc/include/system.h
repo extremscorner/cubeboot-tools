@@ -38,6 +38,9 @@
 
 #define FLIPPER_ICR             ((void *)0xcc003000)
 
+#define FLIPPER_RESET           ((void *)0xcc003024)
+#define FLIPPER_RESET_DVD       0x00000004
+
 #define GCN_SI_C0OUTBUF		((void *)0xcc006400)
 #define GCN_SI_SR		((void *)0xcc006438)
 

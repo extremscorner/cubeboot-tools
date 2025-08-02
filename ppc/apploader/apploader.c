@@ -6,7 +6,7 @@
  *
  * Copyright (C) 2005-2006 The GameCube Linux Team
  * Copyright (C) 2005,2006 Albert Herranz
- * Copyright (C) 2020-2021 Extrems
+ * Copyright (C) 2020-2025 Extrems
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,6 +16,7 @@
  */
 
 #define PATCH_IPL 1
+#define RESET_DVD 0
 
 #include <stddef.h>
 #include <string.h>
@@ -159,9 +160,11 @@ static struct bootloader_control bl_control = { .size = ~0 };
 static unsigned char di_buffer[DI_SECTOR_SIZE] __attribute__ ((aligned(32))) =
 	"www.gc-linux.org";
 
-#if PATCH_IPL
+#if PATCH_IPL > 0
 static void patch_ipl(void);
+#if PATCH_IPL > 1
 static void skip_ipl_animation(void);
+#endif
 #endif
 
 /*
@@ -176,7 +179,7 @@ void al_start(void **enter, void **load, void **exit)
 	*load = al_load;
 	*exit = al_exit;
 
-#if PATCH_IPL
+#if PATCH_IPL > 0
 	patch_ipl();
 #endif
 }
@@ -503,7 +506,7 @@ static int al_load(void **address, uint32_t *length, uint32_t *offset)
 		lowmem->a_bi2 = (void *)al_control.bi2_address;
 		flush_dcache_range(lowmem, lowmem+1);
 
-#if PATCH_IPL
+#if PATCH_IPL > 1
 		skip_ipl_animation();
 #endif
 		*length = 0;
@@ -523,10 +526,13 @@ static int al_load(void **address, uint32_t *length, uint32_t *offset)
  */
 static void *al_exit(void)
 {
+#if RESET_DVD
+	writel((readl(FLIPPER_RESET) & ~FLIPPER_RESET_DVD) | 1, FLIPPER_RESET);
+#endif
 	return bl_control.entry_point;
 }
 
-#if PATCH_IPL
+#if PATCH_IPL > 0
 
 /*
  *
@@ -726,6 +732,8 @@ static void patch_ipl(void)
 	}
 }
 
+#if PATCH_IPL > 1
+
 /*
  *
  */
@@ -802,6 +810,8 @@ static void skip_ipl_animation(void)
 		break;
 	}
 }
+
+#endif
 
 #endif
 

@@ -134,10 +134,8 @@ static void mdelay(int msecs)
  */
 static void di_reset(void)
 {
-        unsigned long *reset_reg = (unsigned long *)0xcc003024;
+        unsigned long *reset_reg = FLIPPER_RESET;
         unsigned long reset, i;
-
-#define FLIPPER_RESET_DVD 0x00000004
 
         reset = readl(reset_reg);
         writel((reset & ~FLIPPER_RESET_DVD) | 1, reset_reg);
