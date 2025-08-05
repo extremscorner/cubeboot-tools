@@ -741,67 +741,78 @@ static void skip_ipl_animation(void)
 {
 	switch (get_ipl_revision()) {
 	case IPL_NTSC_10_001:
-		if (*(uint32_t *)0x8145d6d0 == 1
+		if (!(*(uint8_t *)0x814e46d1 & 0x80)
+			&& *(uint32_t *)0x8145d6d0 == 1
 			&& !(*(uint16_t *)0x8145f14c & 0x0100)
 			&& *(uint32_t *)0x8145d6f0 == 0x81465728)
 			*(uint8_t *)0x81465747 = 1;
 		break;
 	case IPL_NTSC_10_002:
-		if (*(uint32_t *)0x814609c0 == 1
+		if (!(*(uint8_t *)0x8155a351 & 0x80)
+			&& *(uint32_t *)0x814609c0 == 1
 			&& !(*(uint16_t *)0x814624ec & 0x0100)
 			&& *(uint32_t *)0x814609e0 == 0x81468ac8)
 			*(uint8_t *)0x81468ae7 = 1;
 		break;
 	case IPL_DEV_10:
-		if (*(uint32_t *)0x81460fe0 == 1
+		if (!(*(uint8_t *)0x8155a971 & 0x80)
+			&& *(uint32_t *)0x81460fe0 == 1
 			&& !(*(uint16_t *)0x81462b0c & 0x0100)
 			&& *(uint32_t *)0x81461000 == 0x814690e8)
 			*(uint8_t *)0x81469107 = 1;
 		break;
 	case IPL_NTSC_11_001:
-		if (*(uint32_t *)0x81481518 == 1
+		if (!(*(uint8_t *)0x81581791 & 0x80)
+			&& *(uint32_t *)0x81481518 == 1
 			&& !(*(uint16_t *)0x8148370c & 0x0100)
 			&& *(uint32_t *)0x81481538 == 0x81489e58)
 			*(uint8_t *)0x81489e77 = 1;
 		break;
 	case IPL_PAL_10_001:
-		if (*(uint32_t *)0x814ad3b8 == 1
+		if (!(*(uint8_t *)0x815d41b1 & 0x80)
+			&& *(uint32_t *)0x814ad3b8 == 1
 			&& !(*(uint16_t *)0x814af60c & 0x0100)
 			&& *(uint32_t *)0x814ad3d8 == 0x814b5d58)
 			*(uint8_t *)0x814b5d77 = 1;
 		break;
 	case IPL_PAL_10_002:
-		if (*(uint32_t *)0x814ac828 == 1
+		if (!(*(uint8_t *)0x815d3851 & 0x80)
+			&& *(uint32_t *)0x814ac828 == 1
 			&& !(*(uint16_t *)0x814aeb2c & 0x0100)
 			&& *(uint32_t *)0x814ac848 == 0x814b5278)
 			*(uint8_t *)0x814b5297 = 1;
 		break;
 	case IPL_MPAL_11:
-		if (*(uint32_t *)0x8147c1d8 == 1
+		if (!(*(uint8_t *)0x8157c451 & 0x80)
+			&& *(uint32_t *)0x8147c1d8 == 1
 			&& !(*(uint16_t *)0x8147e3cc & 0x0100)
 			&& *(uint32_t *)0x8147c1f8 == 0x81484b18)
 			*(uint8_t *)0x81484b37 = 1;
 		break;
 	case IPL_TDEV_11:
-		if (*(uint32_t *)0x81487438 == 1
+		if (!(*(uint8_t *)0x81587991 & 0x80)
+			&& *(uint32_t *)0x81487438 == 1
 			&& !(*(uint16_t *)0x8148972c & 0x0100)
 			&& *(uint32_t *)0x81487458 == 0x8148fe78)
 			*(uint8_t *)0x8148fe97 = 1;
 		break;
 	case IPL_NTSC_12_001:
-		if (*(uint32_t *)0x814835f0 == 1
+		if (!(*(uint8_t *)0x81582f51 & 0x80)
+			&& *(uint32_t *)0x814835f0 == 1
 			&& !(*(uint16_t *)0x81484cec & 0x0100)
 			&& *(uint32_t *)0x81483610 == 0x8148b438)
 			*(uint8_t *)0x8148b457 = 1;
 		break;
 	case IPL_NTSC_12_101:
-		if (*(uint32_t *)0x81483a70 == 1
+		if (!(*(uint8_t *)0x815833f1 & 0x80)
+			&& *(uint32_t *)0x81483a70 == 1
 			&& !(*(uint16_t *)0x8148518c & 0x0100)
 			&& *(uint32_t *)0x81483a90 == 0x8148b8d8)
 			*(uint8_t *)0x8148b8f7 = 1;
 		break;
 	case IPL_PAL_12_101:
-		if (*(uint32_t *)0x814af6b0 == 1
+		if (!(*(uint8_t *)0x815d5b51 & 0x80)
+			&& *(uint32_t *)0x814af6b0 == 1
 			&& !(*(uint16_t *)0x814b0dcc & 0x0100)
 			&& *(uint32_t *)0x814af6d0 == 0x814b7518)
 			*(uint8_t *)0x814b7537 = 1;
