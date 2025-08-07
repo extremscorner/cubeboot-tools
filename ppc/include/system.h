@@ -40,6 +40,8 @@
 
 #define FLIPPER_RESET           ((void *)0xcc003024)
 #define FLIPPER_RESET_DVD       0x00000004
+#define FLIPPER_RESETCODE_MASK  0xFFFFFFF8
+#define FLIPPER_RESETCODE_SHIFT 3
 
 #define GCN_SI_C0OUTBUF		((void *)0xcc006400)
 #define GCN_SI_SR		((void *)0xcc006438)
